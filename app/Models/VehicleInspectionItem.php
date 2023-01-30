@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class InspectionItem extends Model
+class VehicleInspectionItem extends Model
 {
     use HasFactory;
 
@@ -14,15 +14,13 @@ class InspectionItem extends Model
         'inspection_location_id',
         'name',
         'position',
-        'status',
-        'vehicle_types'
+        'status',      
+        'vehicle_order_report_id'
     ];
-
     protected $appends=[
         'inspection_location_name',
         'inspection_type_name',
     ];
-    
    public function locationName()
    {
        return $this->belongsTo(InspectionLocation::class,'inspection_location_id','id');
@@ -35,7 +33,7 @@ class InspectionItem extends Model
 
    public function getItemOptionAttributes()
    {
-       return $this->hasMany(ItemOptionAttribute::class,'inspection_item_id','id')->orderBy('id');
+       return $this->hasMany(VehicleItemOptionAttribute::class,'vehicle_inspection_item_id','id')->orderBy('id');
    }
 
    public function getInspectionLocationNameAttribute()
@@ -64,5 +62,4 @@ class InspectionItem extends Model
       }
       return '';
    }
-
 }

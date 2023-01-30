@@ -17,7 +17,9 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('vehicle_id')->index();
             $table->foreign('vehicle_id')->references('id')->on('vehicles')->onDelete('CASCADE');
+            
             $table->bigInteger('inspection_item_id')->index();
+
             $table->foreign('inspection_item_id')->references('id')->on('inspection_items')->onDelete('CASCADE');
             $table->boolean('no_prior_event_observed');
             $table->timestamps();

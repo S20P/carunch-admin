@@ -12,6 +12,7 @@ use App\Models\State;
 use App\Models\Vehicle;
 use App\Models\VehicleAnswerReport;
 use App\Models\VehicleAnswerReportItem;
+use App\Models\VehicleInspectionItem;
 use App\Models\VehicleType;
 use Illuminate\Http\Request;
 use DataTables;
@@ -89,7 +90,7 @@ class VehicleAnswerReportController extends Controller
         }
         $vehicle_type_id = $vehicle->vehicle_type_id;
         if ($vehicle_type_id != '') {
-            $InspectionItems = InspectionItem::with('getItemOptionAttributes.getItemOptionValues')->where('status', true)->whereJsonContains('vehicle_types', strval($vehicle_type_id))->orderBy('position')->get();
+            $InspectionItems = VehicleInspectionItem::with('getItemOptionAttributes.getItemOptionValues')->where('status', true)->where('vehicle_order_report_id', $vehicle->id)->orderBy('position')->get();
             $VehicleAnswerReport = VehicleAnswerReport::with('hasVehicleAnswerReportItem')->where('vehicle_id', $id)->get()->makeHidden(['hasVehicleAnswerReportItem.hasVehicleAnswerReportData']);
             return view('theme.vehicle_answer_report.edit', compact('InspectionItems', 'VehicleAnswerReport','vehicle','final_wholesale_price','final_retail_price'));
         }
@@ -123,7 +124,7 @@ class VehicleAnswerReportController extends Controller
                 try {
                     $result = VehicleAnswerReport::create([
                         'vehicle_id' => $request->vehicle_id,
-                        'inspection_item_id' => $request->inspection_item_id,
+                        'vehicle_inspection_item_id' => $request->inspection_item_id,
                         'no_prior_event_observed' => $no_prior_event_observed,
                     ]);
                     if ($result) {
@@ -149,7 +150,7 @@ class VehicleAnswerReportController extends Controller
 
                     $result = VehicleAnswerReport::create([
                         'vehicle_id' => $request->vehicle_id,
-                        'inspection_item_id' => $request->inspection_item_id,
+                        'vehicle_inspection_item_id' => $request->inspection_item_id,
                         'no_prior_event_observed' => $no_prior_event_observed,
                     ]);
 
@@ -170,7 +171,7 @@ class VehicleAnswerReportController extends Controller
                                     $item_option_attribute_value=$qp['value'];
                                     $VehicleAnswerReportItem = VehicleAnswerReportItem::updateOrCreate(
                                         ['vehicle_answer_report_id'=>$result->id
-                                        ,'item_option_attribute_id' => $item_option_attribute_id],
+                                        ,'vehicle_item_option_attribute_id' => $item_option_attribute_id],
                                         ['item_option_answerd' => $item_option_attribute_value]
                                     );
                                 }
@@ -188,7 +189,7 @@ class VehicleAnswerReportController extends Controller
                                         $item_option_attribute_value=$ques_child[$item_option_attribute_id];
                                         $VehicleAnswerReportItem = VehicleAnswerReportItem::updateOrCreate(
                                             ['vehicle_answer_report_id'=>$result->id
-                                            ,'item_option_attribute_id' => $item_option_attribute_id],
+                                            ,'vehicle_item_option_attribute_id' => $item_option_attribute_id],
                                             ['item_option_answerd' => $item_option_attribute_value]
                                         );
                                     }
@@ -248,7 +249,7 @@ class VehicleAnswerReportController extends Controller
                     $result = $VehicleAnswerReport->save();
                     if ($result) {
                         $ques_parent=$request->ques_parent;
-                        $old_answers=$VehicleAnswerReport->hasVehicleAnswerReportItem->pluck('item_option_attribute_id')->toArray();
+                        $old_answers=$VehicleAnswerReport->hasVehicleAnswerReportItem->pluck('vehicle_item_option_attribute_id')->toArray();
                         if($ques_parent!=null && !empty($ques_parent) && $ques_parent!='')
                         {
                             $updated_val=array();
@@ -257,13 +258,13 @@ class VehicleAnswerReportController extends Controller
                                if(is_array($qp))
                                {
                                 //text box
-                                if(isset($qp['item_option_attribute_id']) && isset($qp['value']) && $qp['value']!='')
+                                if(isset($qp['vehicle_item_option_attribute_id']) && isset($qp['value']) && $qp['value']!='')
                                 {
                                     $updated_val[]=$qp['item_option_attribute_id'];
                                     $item_option_attribute_id=$qp['item_option_attribute_id'];
                                     $item_option_attribute_value=$qp['value'];
                                     $VehicleAnswerReportItem = VehicleAnswerReportItem::updateOrCreate(
-                                        ['vehicle_answer_report_id'=>$request->vehicle_answer_report_id,'item_option_attribute_id' => $item_option_attribute_id],
+                                        ['vehicle_answer_report_id'=>$request->vehicle_answer_report_id,'vehicle_item_option_attribute_id' => $item_option_attribute_id],
                                         ['item_option_answerd' => $item_option_attribute_value]
                                     );
                                 }
@@ -280,7 +281,7 @@ class VehicleAnswerReportController extends Controller
                                     {
                                         $item_option_attribute_value=$ques_child[$item_option_attribute_id];
                                         $VehicleAnswerReportItem = VehicleAnswerReportItem::updateOrCreate(
-                                            ['vehicle_answer_report_id'=>$request->vehicle_answer_report_id,'item_option_attribute_id' => $item_option_attribute_id],
+                                            ['vehicle_answer_report_id'=>$request->vehicle_answer_report_id,'vehicle_item_option_attribute_id' => $item_option_attribute_id],
                                             ['item_option_answerd' => $item_option_attribute_value]
                                         );
                                     }
@@ -290,7 +291,7 @@ class VehicleAnswerReportController extends Controller
                             $delete=array_diff($old_answers,$updated_val); 
                             if(!empty($delete) && $delete!=null)
                             {
-                                $category_delete=VehicleAnswerReportItem::where('vehicle_answer_report_id',$request->vehicle_answer_report_id)->whereIn('item_option_attribute_id',$delete)->delete();
+                                $category_delete=VehicleAnswerReportItem::where('vehicle_answer_report_id',$request->vehicle_answer_report_id)->whereIn('vehicle_item_option_attribute_id',$delete)->delete();
                             }
                         }
                         $finalPrice  =  $this->getfinalprice($request->vehicle_id);

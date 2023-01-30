@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
+
 Route::get('questions', [InspectionQuestionController::class, 'question']);
 
 Route::post('dealers/login', [LoginController::class, 'login']);

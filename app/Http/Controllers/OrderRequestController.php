@@ -11,6 +11,12 @@ use App\Models\VehicleType;
 use Illuminate\Http\Request;
 use DataTables;
 use Illuminate\Support\Facades\Crypt;
+use App\Models\InspectionItem;
+use App\Models\ItemOptionAttribute;
+use App\Models\ItemOptionValue;
+use App\Models\VehicleInspectionItem;
+use App\Models\VehicleItemOptionAttribute;
+use App\Models\VehicleItemOptionValue;
 
 class OrderRequestController extends Controller
 {
@@ -22,7 +28,7 @@ class OrderRequestController extends Controller
     public function index(Request $request)
     {
         if ($request->ajax()) {
-            $data =  Vehicle::with('hasCustomers')->orderby('created_at','DESC')->get();
+            $data = Vehicle::with('hasCustomers')->orderby('created_at','DESC')->get();
             return DataTables::of($data)
                 ->addIndexColumn()
                 ->addColumn('action', function (Vehicle $order) {
@@ -368,6 +374,11 @@ class OrderRequestController extends Controller
             $data['customer_id'] = $customer_id;
             $result = Vehicle::create($data);
             if ($result) {
+
+                $vehicle_type_id = $request->vehicle_type_id;
+                $vehicle_order_report_id = $result->id;
+                $this->cloneQuestionData($vehicle_type_id,$vehicle_order_report_id);
+                 
                 return redirect()->route('order_requests.index')
                     ->with('success', "inspector Created");
             } else {
@@ -491,4 +502,61 @@ class OrderRequestController extends Controller
             ]);
         }
     }
+
+
+     public function cloneQuestionData($vehicle_type_id,$vehicle_order_report_id){
+
+        $inspectionItems = InspectionItem::where('vehicle_types', 'LIKE', "%".$vehicle_type_id."%")->get();
+        if(count($inspectionItems)){
+            foreach($inspectionItems as $key=>$inspectionItem){
+                $item = [];
+                $max_position = VehicleInspectionItem::max('position');
+                if ($max_position != '' && $max_position != null) {
+                    $next_position = $max_position + 1;
+                } else {
+                    $next_position = 1;
+                }
+                $item['name'] = $inspectionItem['name'];
+                $item['inspection_location_id'] = $inspectionItem['inspection_location_id'];
+                $item['inspection_type_id'] = $inspectionItem['inspection_type_id'];
+                $item['position'] = $next_position;
+                $item['status'] = $inspectionItem['status'];
+                $item['vehicle_order_report_id'] = $vehicle_order_report_id;                
+                $result = VehicleInspectionItem::create($item);
+                if ($result) {
+                   $itemAttrs = ItemOptionAttribute::where('inspection_item_id', $inspectionItem['id'])->get();
+                   if(count($itemAttrs)){
+                    foreach($itemAttrs as $key=>$itemAttr){
+                          $attr = [];
+                          $attr['label'] = $itemAttr['label'];
+                          $attr['label_type'] = $itemAttr['label_type'];
+                          $attr['vehicle_inspection_item_id'] = $result->id;
+
+                          $result_sub = VehicleItemOptionAttribute::create($attr);
+                          if($result_sub && $result_sub->id!='' && $result_sub->id!=null)
+                          {
+                            
+                            $itemOptionValues = ItemOptionValue::where('item_option_attributes_id', $itemAttr['id'])->get();
+                            if(count($itemOptionValues)){
+                                foreach($itemOptionValues as $key=>$itemValue){
+
+                                    $itemVal = [];
+                                    $itemVal['vehicle_item_option_attributes_id'] = $result_sub->id;
+                                    $itemVal['label1'] = $itemValue['label1'];
+                                    $itemVal['value1_wholesale'] = $itemValue['value1_wholesale'];
+                                    $itemVal['value1_retail'] = $itemValue['value1_retail'];
+                                    $itemVal['label2'] = $itemValue['label2'];
+                                    $itemVal['value2_wholesale'] = $itemValue['value2_wholesale'];
+                                    $itemVal['value2_retail'] = $itemValue['value2_retail'];
+
+                                    $result_sub_value = VehicleItemOptionValue::create($itemVal);
+                                }
+                            }
+                         }
+                     }
+                  }
+                }
+            }
+        }
+     }
 }

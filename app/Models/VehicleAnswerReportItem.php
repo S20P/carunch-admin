@@ -11,9 +11,10 @@ class VehicleAnswerReportItem extends Model
 
     protected $fillable = [
         'vehicle_answer_report_id',
-        'item_option_attribute_id',
+        'vehicle_item_option_attribute_id',
         'item_option_answerd',
     ];
+
     protected $appends = [
         'question_type',
         'inspection_value',
@@ -21,8 +22,8 @@ class VehicleAnswerReportItem extends Model
 
     public function getQuestionTypeAttribute()
     {
-        if ($this->item_option_attribute_id != '' && $this->item_option_attribute_id != null) {
-            $ItemOptionAttribute = ItemOptionAttribute::where('id', $this->item_option_attribute_id)->get();
+        if ($this->vehicle_item_option_attribute_id != '' && $this->vehicle_item_option_attribute_id != null) {
+            $ItemOptionAttribute = VehicleItemOptionValue::where('id', $this->vehicle_item_option_attribute_id)->get();
             if ($ItemOptionAttribute->isNotEmpty()) {
                 return $ItemOptionAttribute[0]->label_type;
             } else {
@@ -32,13 +33,14 @@ class VehicleAnswerReportItem extends Model
             return null;
         }
     }
+    
     public function hasVehicleAnswerReportData()
     {
         return $this->belongsTo(VehicleAnswerReport::class, 'vehicle_answer_report_id', 'id');
     }
     public function hasItemOptionAttributeseData()
     {
-        return $this->belongsTo(ItemOptionAttribute::class, 'item_option_attribute_id', 'id');
+        return $this->belongsTo(VehicleItemOptionAttribute::class, 'vehicle_item_option_attribute_id', 'id');
     }
 
     public function getInspectionValueAttribute()

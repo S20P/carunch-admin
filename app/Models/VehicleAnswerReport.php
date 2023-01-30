@@ -11,7 +11,7 @@ class VehicleAnswerReport extends Model
 
     protected $fillable = [
         'vehicle_id',
-        'inspection_item_id',
+        'vehicle_inspection_item_id',
         'no_prior_event_observed',
     ];
     public function hasVehicleAnswerReportItem()
@@ -24,7 +24,7 @@ class VehicleAnswerReport extends Model
     }
     public function hasInspectionItems()
     {
-       return $this->hasOne(InspectionItem::class,'id','inspection_item_id');
+       return $this->hasOne(VehicleInspectionItem::class,'id','vehicle_inspection_item_id');
     }
 
 }

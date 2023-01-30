@@ -305,8 +305,8 @@
                                                         $sum_wholesale_original = 0;
                                                         $sum_retail_original = 0;
                                                             $sum_wholesale_val = 0;
-                                                            if ($VehicleAnswerReport->where('inspection_item_id', $question->id)->isNotEmpty()) {
-                                                                $VehicleAnswer = $VehicleAnswerReport->where('inspection_item_id', $question->id)->first();
+                                                            if ($VehicleAnswerReport->where('vehicle_inspection_item_id', $question->id)->isNotEmpty()) {
+                                                                $VehicleAnswer = $VehicleAnswerReport->where('vehicle_inspection_item_id', $question->id)->first();
                                                             } else {
                                                                 $VehicleAnswer = null;
                                                             }
@@ -322,6 +322,7 @@
                                                             
                                                                 if ($VehicleAnswer->hasVehicleAnswerReportItem->isNotEmpty()) {
                                                                     $collection = collect($VehicleAnswer->hasVehicleAnswerReportItem);
+                                                                   
                                                                     $sum_wholesale = $collection->sum('inspection_value.wholesale');
                                                                     $sum_wholesale_val = abs($sum_wholesale);
                                                                     $sum_wholesale_original = $sum_wholesale;
@@ -468,8 +469,8 @@
                                                                             @endphp
                                                                             @foreach ($question->getItemOptionAttributes as $options)
                                                                                 @php
-                                                                                    if ($VehicleAnswer != null && $VehicleAnswer->hasVehicleAnswerReportItem->where('item_option_attribute_id', $options->id)->isNotEmpty()) {
-                                                                                        $VehicleAnswer_opt = $VehicleAnswer->hasVehicleAnswerReportItem->where('item_option_attribute_id', $options->id)->first();
+                                                                                    if ($VehicleAnswer != null && $VehicleAnswer->hasVehicleAnswerReportItem->where('vehicle_item_option_attribute_id', $options->id)->isNotEmpty()) {
+                                                                                        $VehicleAnswer_opt = $VehicleAnswer->hasVehicleAnswerReportItem->where('vehicle_item_option_attribute_id', $options->id)->first();
                                                                                     } else {
                                                                                         $VehicleAnswer_opt = null;
                                                                                     }

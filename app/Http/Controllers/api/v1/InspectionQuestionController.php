@@ -14,11 +14,15 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use App\Models\Inspector;
 
+use App\Models\VehicleInspectionItem;
+use App\Models\VehicleItemOptionAttribute;
+use App\Models\VehicleItemOptionValue;
+
 class InspectionQuestionController extends Controller
 {
     public function question(Request $request)
     {
-        $inspection_items = InspectionItem::with('getItemOptionAttributes.getItemOptionValues')->where('status', true)->orderBy('position')->get();
+        $inspection_items = VehicleInspectionItem::with('getItemOptionAttributes.getItemOptionValues')->where('status', true)->orderBy('position')->get();
         if (!is_null($inspection_items) && count($inspection_items) > 0) {
             $response = [];
             $newResult = [];
@@ -83,7 +87,7 @@ class InspectionQuestionController extends Controller
                 $key_string = Crypt::decryptString($paramater);
                 parse_str($key_string, $key_data);
                 if (isset($key_data['customer_id']) && isset($key_data['vehicle_type']) && isset($key_data['vehicle_id'])) {
-                    $inspection_items = InspectionItem::with('getItemOptionAttributes.getItemOptionValues')->where('status', true)->whereJsonContains('vehicle_types', strval($key_data['vehicle_type']))->orderBy('position')->get();
+                    $inspection_items = VehicleInspectionItem::with('getItemOptionAttributes.getItemOptionValues')->where('vehicle_order_report_id', $key_data['vehicle_id'])->where('status', true)->orderBy('position')->get();
                     if (!is_null($inspection_items) && count($inspection_items) > 0) {
                         $response = [];
                         $newResult = [];
@@ -187,10 +191,8 @@ class InspectionQuestionController extends Controller
             if (!is_null($data) && !empty($data) ) {
                 $vehicle_id=$data->vehicle_id;
                 $vehicle=Vehicle::findOrfail($vehicle_id);
-
-             
-
-                if($vehicle->is_inspection_done==false && $vehicle->hasVehicleAnswerReport->isEmpty()){
+            
+                 if($vehicle->is_inspection_done==false && $vehicle->hasVehicleAnswerReport->isEmpty()){
                     $question_err=[];
                     $ans_err=[];
                         foreach($data->questions as $question)
@@ -200,7 +202,7 @@ class InspectionQuestionController extends Controller
                             $answers=$question->answers;
                             $VehicleAnswerReport = VehicleAnswerReport::create([
                                 'vehicle_id' => $vehicle_id,
-                                'inspection_item_id' => $inspection_item_id,
+                                'vehicle_inspection_item_id' => $inspection_item_id,
                                 'no_prior_event_observed' => $no_prior_event_observed,
                             ]);
                             if($VehicleAnswerReport)
@@ -220,7 +222,7 @@ class InspectionQuestionController extends Controller
                                 {
                                     $ans_data[] = [
                                         'vehicle_answer_report_id' => $vehicle_answer_report_id,
-                                        'item_option_attribute_id' => $ans->item_option_attribute_id,
+                                        'vehicle_item_option_attribute_id' => $ans->item_option_attribute_id,
                                         'item_option_answerd' => $ans->item_option_answerd,
                                     ];
                                 }
@@ -282,7 +284,7 @@ class InspectionQuestionController extends Controller
                         'message' =>trans('translation.inspection_already_submited'),
                     ]);
                 }
-               
+                
               }
               else
               {
